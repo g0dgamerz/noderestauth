@@ -1,22 +1,32 @@
 const express = require('express')
 const app = express()
 const bcrypt = require('bcrypt')
-
+const fs = require('fs');
+const cors=require('cors')
 app.use(express.json())
+app.use(cors())
+var users = []
+fs.readFile(__dirname + '/users.csv','utf8',(err,data)=>{
+  if(err){
 
-const users = []
-
+  }
+  if(data){
+    users = data.split('\n');
+  }
+})
 app.get('/users', (req, res) => {
   res.json(users)
 })
 
 app.post('/users',async (req,res)=>{
-    const salt = await bcrypt.genSalt()
-    const hashedPassword = await bcrypt.hash(req.body.password, salt)
-    const user = { name:req.body.name, password:hashedPassword}
-    users.push(user)
-    res.status(201).send()
+  let salt = await bcrypt.genSalt()
+  let hashedPassword = await bcrypt.hash(req.body.password, salt)
+  let user = { name:req.body.name, password:hashedPassword}
   
+  console.log(user);
+  fs.appendFile('users.csv',`${user.name},${user.password}\n`,(err)=>console.log(err));
+  res.status(201).send()
+
 
 })
 
@@ -61,4 +71,6 @@ app.post('/users/login', async (req, res) => {
 //   }
 // })
 
-app.listen(3000)
+app.listen(4000,function() {
+  console.log("server is runnng at 4000")
+})
